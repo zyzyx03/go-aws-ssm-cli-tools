@@ -25,3 +25,6 @@ go.work
 
 # ignore VsCode File
 .vscode
+
+# Ignore Go Bin file
+aerossm

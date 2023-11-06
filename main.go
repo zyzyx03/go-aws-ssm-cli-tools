@@ -12,7 +12,7 @@ import (
 func main() {
 	// Define a custom boolean flag to trigger installation and configuration
 	installFlag := flag.Bool("i", false, "Install and configure the necessary components")
-	ssmFlag := flag.String("ssm", "", "Connect to an SSM instance by name")
+	ssmFlag := flag.String("c", "", "Connect to an SSM instance by name")
 	flag.Parse()
 
 	// If the -install flag is provided, perform installation and configuration
@@ -190,9 +190,9 @@ func installAndConfigure() {
 
 func printHelp() {
 	fmt.Println("Usage:")
-	fmt.Println("  To install and configure, run: your_program -i or --install")
-	fmt.Println("  To connect to an SSM instance, run: your_program --ssm instance_name")
-	fmt.Println("  To print this help message, run: your_program")
+	fmt.Println("  To install and configure, run: aerossm -i")
+	fmt.Println("  To connect to an SSM instance, run: aerossm -c amp-af-stg")
+	fmt.Println("  To print this help message, run: aerossm")
 }
 
 func connectToEnvironment(environment string) {
@@ -203,11 +203,11 @@ func connectToEnvironment(environment string) {
 	}{
 		"amp-af-stg": {
 			InstanceID: "i-00c7da261367b0a31",
-			Region:     "ap-southeast-1", // Example region for "dev"
+			Region:     "ap-southeast-1", // Example region for "stg"
 		},
 		"amp-af-prd": {
 			InstanceID: "i-0b808b5c8b54ca924",
-			Region:     "ap-southeast-2", // Example region for "prod"
+			Region:     "ap-southeast-2", // Example region for "prd"
 		},
 		"another": {
 			InstanceID: "i-0123456789abcdef0", // Placeholder instance ID for "another"
@@ -219,7 +219,7 @@ func connectToEnvironment(environment string) {
 		fmt.Printf("Executing SSM command for %s environment in region %s:\n", environment, envInfo.Region)
 		executeSSMCommand(envInfo.InstanceID, envInfo.Region)
 	} else {
-		fmt.Println("Please specify a valid environment using the -ssm flag (dev, prod, or another).")
+		fmt.Println("Please specify a valid environment using the -c flag (amp-af-stg, amp-af-prd, or another).")
 	}
 }
 
