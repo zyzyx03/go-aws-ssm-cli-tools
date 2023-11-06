@@ -22,3 +22,6 @@ go.work
 
 # ignore DEB package
 *.deb
+
+# ignore VsCode File
+.vscode
