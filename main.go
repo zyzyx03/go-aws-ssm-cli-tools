@@ -12,7 +12,6 @@ import (
 func main() {
 	// Define a custom boolean flag to trigger installation and configuration
 	installFlag := flag.Bool("i", false, "Install and configure the necessary components")
-	flag.BoolVar(installFlag, "install", false, "Install and configure the necessary components") // Alias for -i
 	ssmFlag := flag.String("ssm", "", "Connect to an SSM instance by name")
 	flag.Parse()
 
@@ -28,9 +27,10 @@ func main() {
 		return
 	}
 
-	// Check if the -ssm flag is provided
+	// If -ssm flag is provided with an environment, execute the SSM command
 	if *ssmFlag != "" {
-		connectToSSM(*ssmFlag)
+		environment := *ssmFlag
+		connectToEnvironment(environment)
 		return
 	}
 
@@ -188,14 +188,51 @@ func installAndConfigure() {
 	}
 }
 
-func connectToSSM(instanceName string) {
-	// Add code here to connect to SSM using the provided instance name
-	fmt.Printf("Connecting to SSM instance: %s\n", instanceName)
-}
-
 func printHelp() {
 	fmt.Println("Usage:")
 	fmt.Println("  To install and configure, run: your_program -i or --install")
 	fmt.Println("  To connect to an SSM instance, run: your_program --ssm instance_name")
 	fmt.Println("  To print this help message, run: your_program")
+}
+
+func connectToEnvironment(environment string) {
+	// Define environment-to-instance-region mappings
+	environmentToInstanceRegion := map[string]struct {
+		InstanceID string
+		Region     string
+	}{
+		"amp-af-stg": {
+			InstanceID: "i-00c7da261367b0a31",
+			Region:     "ap-southeast-1", // Example region for "dev"
+		},
+		"amp-af-prd": {
+			InstanceID: "i-0b808b5c8b54ca924",
+			Region:     "ap-southeast-2", // Example region for "prod"
+		},
+		"another": {
+			InstanceID: "i-0123456789abcdef0", // Placeholder instance ID for "another"
+			Region:     "us-east-1",           // Example region for "another"
+		},
+	}
+
+	if envInfo, ok := environmentToInstanceRegion[environment]; ok {
+		fmt.Printf("Executing SSM command for %s environment in region %s:\n", environment, envInfo.Region)
+		executeSSMCommand(envInfo.InstanceID, envInfo.Region)
+	} else {
+		fmt.Println("Please specify a valid environment using the -ssm flag (dev, prod, or another).")
+	}
+}
+
+func executeSSMCommand(instanceID, region string) {
+	cmd := exec.Command("aws", "ssm", "start-session", "--target", instanceID,
+		"--document-name", "AWS-StartPortForwardingSession",
+		"--parameters", `{"portNumber":["8080"],"localPortNumber":["8080"]}`,
+		"--region", region)
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Error executing SSM command: %v\n", err)
+	}
 }
